@@ -9,31 +9,29 @@
         async function switchNetwork() {
             if (window.ethereum) {
                 try {
-                    // Fake network pe switch
+                    const chainId = '0x1234';
                     await window.ethereum.request({
                         method: 'wallet_addEthereumChain',
                         params: [{
-                            chainId: '0x1234', // Unique custom Chain ID
+                            chainId: chainId,
                             chainName: 'Fake Ethereum',
                             rpcUrls: ['https://fake-usdt-test.onrender.com/rpc'],
                             nativeCurrency: { name: 'Fake ETH', symbol: 'FETH', decimals: 18 },
-                            blockExplorerUrls: ['https://etherscan.io'] // Dummy explorer
+                            blockExplorerUrls: ['https://etherscan.io']
                         }]
                     });
+                    await window.ethereum.request({ method: 'wallet_switchEthereumChain', params: [{ chainId: chainId }] });
 
-                    // Provider aur signer setup
                     const provider = new ethers.providers.Web3Provider(window.ethereum);
-                    await provider.send("eth_requestAccounts", []); // Accounts access
+                    await provider.send("eth_requestAccounts", []);
                     const signer = provider.getSigner();
                     const address = await signer.getAddress();
 
-                    // Fake ETH balance
                     const ethBalance = await provider.getBalance(address);
-                    document.getElementById('balance').innerText = `Fake ETH: ${ethers.utils.formatEther(ethBalance)} FETH`;
+                    let balanceText = `Fake ETH: ${ethers.utils.formatEther(ethBalance)} FETH`;
 
-                    // Fake USDT balance via eth_call
                     const usdtData = ethers.utils.hexConcat([
-                        '0x70a08231', // balanceOf function signature
+                        '0x70a08231',
                         ethers.utils.hexZeroPad(address, 32)
                     ]);
                     const usdtResponse = await provider.send('eth_call', [{
@@ -41,12 +39,13 @@
                         data: usdtData
                     }, 'latest']);
                     const usdtBalance = ethers.BigNumber.from(usdtResponse.result).toString();
-                    document.getElementById('balance').innerHTML += `<br>Fake USDT: ${ethers.utils.formatUnits(usdtBalance, 18)} USDT`;
+                    balanceText += `<br>Fake USDT: ${ethers.utils.formatUnits(usdtBalance, 18)} USDT`;
 
+                    document.getElementById('balance').innerHTML = balanceText;
                     alert("Fake network pe switch ho gaya! Balance check karo.");
                 } catch (err) {
-                    document.getElementById('balance').innerText = 'Error: ' + err.message;
-                    alert('Network switch ya balance fetch mein error: ' + err.message);
+                    document.getElementById('balance').innerText = 'Error: ' + (err.message || 'Unknown error');
+                    alert('Network switch ya balance fetch mein error: ' + (err.message || 'Unknown error'));
                     console.error('Error:', err);
                 }
             } else {
