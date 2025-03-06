@@ -1,11 +1,19 @@
 const express = require('express');
 const { JsonRpcEngine } = require('json-rpc-engine');
 const app = express();
+const path = require('path');
 
 // Port ko environment variable se lo (Render ke liye), default 3000 for local
 const port = process.env.PORT || 3000;
 
+// Static files serve karo (index.html ke liye)
+app.use(express.static(path.join(__dirname, '.')));
 app.use(express.json());
+
+// Root route ke liye index.html serve karo
+app.get('/', (req, res) => {
+    res.sendFile(path.join(__dirname, 'index.html'));
+});
 
 // Fake RPC Engine
 const engine = new JsonRpcEngine();
