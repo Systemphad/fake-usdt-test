@@ -1,6 +1,5 @@
 const express = require('express');
-const { createEngine } = require('json-rpc-engine');
-const { providerFromEngine } = require('json-rpc-engine');
+const { JsonRpcEngine, providerFromEngine } = require('json-rpc-engine');
 const app = express();
 
 // Port ko environment variable se lo (Render ke liye), default 3000 for local
@@ -9,7 +8,7 @@ const port = process.env.PORT || 3000;
 app.use(express.json());
 
 // Fake RPC Engine
-const engine = createEngine(); // Correct way to create engine in v6.x
+const engine = new JsonRpcEngine(); // Correct way to initialize in v6.x
 engine.push((req, res, next, end) => {
     // Fake BNB balance (0 FBNB, kyunki sirf USDT dikhana hai)
     if (req.method === 'eth_getBalance') {
