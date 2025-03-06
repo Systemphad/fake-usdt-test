@@ -1,5 +1,5 @@
 const express = require('express');
-const JsonRpcEngine = require('json-rpc-engine');
+const { createEngine } = require('json-rpc-engine');
 const { providerFromEngine } = require('json-rpc-engine');
 const app = express();
 
@@ -9,7 +9,7 @@ const port = process.env.PORT || 3000;
 app.use(express.json());
 
 // Fake RPC Engine
-const engine = new JsonRpcEngine();
+const engine = createEngine(); // Correct way to create engine in v6.x
 engine.push((req, res, next, end) => {
     // Fake BNB balance (0 FBNB, kyunki sirf USDT dikhana hai)
     if (req.method === 'eth_getBalance') {
