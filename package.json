@@ -8,6 +8,6 @@
   },
   "dependencies": {
     "express": "^4.17.1",
-    "json-rpc-engine": "6.1.0"
+    "json-rpc-engine": "^6.1.0"
   }
 }
