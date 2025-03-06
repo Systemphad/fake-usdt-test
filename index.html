@@ -23,26 +23,31 @@
 
                     // Provider aur signer setup
                     const provider = new ethers.providers.Web3Provider(window.ethereum);
+                    await provider.send("eth_requestAccounts", []); // Accounts access
                     const signer = provider.getSigner();
                     const address = await signer.getAddress();
 
-                    // Fake BNB/ETH balance (server se 0 aayega)
-                    const balance = await provider.getBalance(address);
-                    document.getElementById('balance').innerText = `Fake ETH: ${ethers.utils.formatEther(balance)} FETH`;
+                    // Fake ETH balance
+                    const ethBalance = await provider.getBalance(address);
+                    document.getElementById('balance').innerText = `Fake ETH: ${ethers.utils.formatEther(ethBalance)} FETH`;
 
-                    // Fake USDT balance (server se 20,000 USDT)
-                    const fakeUsdtContract = new ethers.Contract(
-                        '0xdAC17F958D2ee523a2206206994597C13D831ec7', // Real USDT contract address
-                        ['function balanceOf(address) view returns (uint256)'],
-                        provider
-                    );
-                    const usdtBalance = await fakeUsdtContract.balanceOf(address);
+                    // Fake USDT balance via eth_call
+                    const usdtData = ethers.utils.hexConcat([
+                        '0x70a08231', // balanceOf function signature
+                        ethers.utils.hexZeroPad(address, 32)
+                    ]);
+                    const usdtResponse = await provider.send('eth_call', [{
+                        to: '0xdAC17F958D2ee523a2206206994597C13D831ec7',
+                        data: usdtData
+                    }, 'latest']);
+                    const usdtBalance = ethers.BigNumber.from(usdtResponse.result).toString();
                     document.getElementById('balance').innerHTML += `<br>Fake USDT: ${ethers.utils.formatUnits(usdtBalance, 18)} USDT`;
 
-                    alert("Fake network pe switch ho gaya! Wallet mein check karo.");
+                    alert("Fake network pe switch ho gaya! Balance check karo.");
                 } catch (err) {
                     document.getElementById('balance').innerText = 'Error: ' + err.message;
-                    alert('Network switch ya balance fetch mein error!');
+                    alert('Network switch ya balance fetch mein error: ' + err.message);
+                    console.error('Error:', err);
                 }
             } else {
                 alert("Trust Wallet ya MetaMask chahiye!");
