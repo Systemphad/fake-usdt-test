@@ -1,0 +1,36 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <title>Fake USDT Balance</title>
+</head>
+<body>
+  <h1>Your Fake USDT Balance</h1>
+  <p id="balance">Loading...</p>
+  <script>
+    fetch('https://fake-usdt-test.onrender.com/rpc', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        jsonrpc: "2.0",
+        method: "eth_call",
+        params: [{
+          to: "0xdAC17F958D2ee523a2206206994597C13D831ec7",
+          data: "0x70a082310000000000000000000000001234567890abcdef1234567890abcdef12345678"
+        }],
+        id: 1
+      })
+    })
+    .then(response => response.json())
+    .then(data => {
+      const balanceHex = data.result;
+      const balanceWei = parseInt(balanceHex, 16);
+      const balanceUSDT = balanceWei / 10**18;
+      document.getElementById('balance').innerText = `${balanceUSDT} FUSDT`;
+    })
+    .catch(err => {
+      document.getElementById('balance').innerText = 'Error fetching balance';
+      console.error(err);
+    });
+  </script>
+</body>
+</html>
